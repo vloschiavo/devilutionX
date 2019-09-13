@@ -118,6 +118,12 @@ if(AMIGA)
   include(amiga_defs)
 endif()
 
+if(ANDROID)
+  set(ASAN OFF)
+  set(UBSAN OFF)
+  set(NONET ON)
+endif()
+
 if(DIST)
   set(sodium_USE_STATIC_LIBS ON)
 endif()
@@ -137,22 +143,21 @@ if(NOT NONET)
   find_package(sodium REQUIRED)
 endif()
 
-if(USE_SDL1)
-  find_package(SDL REQUIRED)
-  find_package(SDL_ttf REQUIRED)
-  find_package(SDL_mixer REQUIRED)
-  include_directories(${SDL_INCLUDE_DIR})
-else()
-  if(SWITCH)
-    find_package(SDL2_STATIC CONFIG QUIET)
+if (NOT ANDROID)
+  if(USE_SDL1)
+    find_package(SDL REQUIRED)
+    find_package(SDL_ttf REQUIRED)
+    find_package(SDL_mixer REQUIRED)
+    include_directories(${SDL_INCLUDE_DIR})
   else()
-    find_package(SDL2 MODULE QUIET)
+    if(SWITCH)
+      find_package(SDL2_STATIC CONFIG QUIET)
+    else()
+      find_package(SDL2 MODULE QUIET)
+    endif()
+    if (NOT SDL2_FOUND)
+      find_package(SDL2 REQUIRED)
   endif()
-  if (NOT SDL2_FOUND)
-    find_package(SDL2 REQUIRED)
-  endif()
-  find_package(SDL2_ttf REQUIRED)
-  find_package(SDL2_mixer REQUIRED)
 endif()
 
 add_library(smacker STATIC
@@ -299,11 +304,9 @@ set(devilutionx_SRCS
   SourceX/DiabloUI/text.cpp
   SourceX/DiabloUI/title.cpp
   SourceX/DiabloUI/ttf_render_wrapped.cpp
-  SourceX/main.cpp
-  SourceX/devilutionx.exe.manifest
-  Packaging/macOS/AppIcon.icns
-  Packaging/resources/CharisSILB.ttf
-  Packaging/windows/devilutionx.rc)
+  SourceX/main.cpp)
+
+set(BIN_TARGET devilutionx)
 
 if(NOT NONET)
   list(APPEND devilutionx_SRCS
@@ -311,8 +314,6 @@ if(NOT NONET)
     SourceX/dvlnet/tcp_server.cpp
     SourceX/dvlnet/udp_p2p.cpp)
 endif()
-
-set(BIN_TARGET devilutionx)
 
 if(SWITCH)
   list(APPEND devilutionx_SRCS
@@ -345,7 +346,19 @@ if(HELLFIRE)
   add_definitions(-DHELLFIRE)
 endif()
 
-add_executable(${BIN_TARGET} WIN32 MACOSX_BUNDLE ${devilutionx_SRCS})
+if (NOT ANDROID)
+  add_executable(${BIN_TARGET}
+    WIN32
+    MACOSX_BUNDLE
+    ${devilutionx_SRCS}
+    SourceX/devilutionx.exe.manifest
+    Packaging/macOS/AppIcon.icns
+    Packaging/resources/CharisSILB.ttf
+    Packaging/windows/devilutionx.rc)
+else()
+  add_library(devilutionx SHARED ${devilutionx_SRCS})
+endif()
+
 
 # Copy the font to the build directory to it works from the build directory
 file(COPY "Packaging/resources/CharisSILB.ttf" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
@@ -376,6 +389,33 @@ if(RUN_TESTS)
   gtest_add_tests(${BIN_TARGET} "" AUTO)
 endif()
 
+if (ANDROID)
+  target_include_directories(devilution PUBLIC
+    SourceX
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/app/libs/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2/include
+
+    # SDL_internal.h is located in src required by SDL_android_main.c bridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2/src
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_mixer
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_ttf)
+  target_include_directories(devilutionx PUBLIC
+    SourceX
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/app/libs/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2/include
+
+    # SDL_internal.h is located in src required by SDL_android_main.c bridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2/src
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_mixer
+    ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_ttf)
+
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2/ ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_mixer/ ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_mixer)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_ttf/ ${CMAKE_CURRENT_SOURCE_DIR}/android-project/SDL2_ttf)
+  configure_file(SourceS/config.h.in config.h @ONLY)
+endif()
 target_include_directories(devilution PUBLIC Source SourceS ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${BIN_TARGET} PRIVATE
   SourceX
@@ -478,17 +518,18 @@ foreach(target devilution ${BIN_TARGET})
   target_compile_options(${target} PUBLIC $<${UBSAN_GENEX}:-fsanitize=undefined>)
   target_link_libraries(${target} PUBLIC $<${UBSAN_GENEX}:-fsanitize=undefined>)
 
-  if(USE_SDL1)
-    target_link_libraries(${target} PRIVATE
-      ${SDL_TTF_LIBRARY}
-      ${SDL_MIXER_LIBRARY}
-      ${SDL_LIBRARY})
-    target_compile_definitions(${target} PRIVATE USE_SDL1)
+  if (NOT ANDROID)
+    if(USE_SDL1)
+      target_link_libraries(${target} PRIVATE
+        ${SDL_TTF_LIBRARY}
+        ${SDL_MIXER_LIBRARY}
+        ${SDL_LIBRARY})
+      target_compile_definitions(${target} PRIVATE USE_SDL1)
   else()
-    target_link_libraries(${target} PRIVATE
-      SDL2::SDL2main
-      SDL2::SDL2_ttf
-      SDL2::SDL2_mixer)
+    target_link_libraries(devilutionx PRIVATE
+      SDL2
+      SDL2_ttf
+      SDL2_mixer)
   endif()
 
   if(SWITCH)
