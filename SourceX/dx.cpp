@@ -59,6 +59,10 @@ static void dx_create_back_buffer()
 
 static void dx_create_primary_surface()
 {
+#ifdef __ANDROID__
+LoadAndroidImages();
+#endif 
+
 #ifndef USE_SDL1
 	if (renderer) {
 		int width, height;
@@ -280,6 +284,9 @@ void RenderPresent()
 		if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
 			ErrSdl();
 		}
+		#ifdef ANDROID
+		DrawAndroidUI();
+		#endif
 		SDL_RenderPresent(renderer);
 
 		if (!vsyncEnabled) {

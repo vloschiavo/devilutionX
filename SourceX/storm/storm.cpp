@@ -52,7 +52,7 @@ void GetBasePath(char *buffer, size_t size)
 	}
 
 #ifdef __ANDROID__
-	snprintf(buffer, size, "%s", "/sdcard/");
+	snprintf(buffer, size, "%s", "/sdcard/devilutionx/");  // Added directory for Android to be devilutionx. 
 #else
 	char *path = SDL_GetBasePath();
 	if (path == NULL) {
