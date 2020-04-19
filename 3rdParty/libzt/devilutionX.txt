@@ -1,0 +1,2 @@
+This is libzt from https://github.com/zerotier/libzt.git
+commit: 48d8dccff83ce0c0952c5c0059a34de349cace41
