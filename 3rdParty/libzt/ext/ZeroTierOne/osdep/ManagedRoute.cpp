@@ -32,10 +32,10 @@
 #include <string.h>
 
 #ifdef __WINDOWS__
-#include <WinSock2.h>
-#include <Windows.h>
+#include <winsock2.h>
+#include <windows.h>
 #include <netioapi.h>
-#include <IPHlpApi.h>
+#include <iphlpapi.h>
 #endif
 
 #ifdef __UNIX_LIKE__

@@ -69,9 +69,9 @@
 #include "lwipDriver.hpp"
 
 #ifdef __WINDOWS__
-#include <WinSock2.h>
-#include <Windows.h>
-#include <ShlObj.h>
+#include <winsock2.h>
+#include <windows.h>
+#include <shlobj.h>
 #include <netioapi.h>
 #include <iphlpapi.h>
 //#include <unistd.h>
@@ -384,6 +384,7 @@ public:
 				}
 				if (_trialBind(_primaryPort)) {
 					_ports[0] = _primaryPort;
+					break;
 				} else {
 					_primaryPort = 0;
 				}

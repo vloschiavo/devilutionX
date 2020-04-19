@@ -77,11 +77,7 @@ extern "C" {
  * @param
  * @return
  */
-#if defined(_WIN32)
-DWORD WINAPI _zts_run_service(LPVOID thread_id);
-#else
-void *_zts_run_service(void *thread_id);
-#endif
+void _zts_run_service();
 
 /**
  * @brief [Should not be called from user application] This function must be surrounded by 

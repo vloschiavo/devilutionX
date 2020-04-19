@@ -54,12 +54,13 @@
 #if __ANDROID__
 #define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS 0
 #endif
-#if __ANDROID__
-#define LWIP_PROVIDE_ERRNO              1
-#define SOCKLEN_T_DEFINED
-#elif !defined(_MSC_VER)
-#define LWIP_PROVIDE_ERRNO              1
-#endif
+// #if __ANDROID__
+// #define LWIP_PROVIDE_ERRNO              1
+// #define SOCKLEN_T_DEFINED
+// #elif !defined(_MSC_VER)
+// #define LWIP_PROVIDE_ERRNO              1
+// #endif
+#define LWIP_ERRNO_STDINCLUDE 1
 // Sockets
 #define LWIP_SOCKET                     1
 #define LWIP_COMPAT_SOCKETS             0
@@ -118,7 +119,7 @@
 // tcpip
 #define TCPIP_MBOX_SIZE                 0
 #define LWIP_TCPIP_CORE_LOCKING         1
-#define LWIP_TCPIP_CORE_LOCKING_INPUT   1
+#define LWIP_TCPIP_CORE_LOCKING_INPUT   0
 // netconn
 #define LWIP_NETCONN_FULLDUPLEX         0
 // netif
@@ -968,14 +969,14 @@ happening sooner than they should.
  * LWIP_BROADCAST_PING==1: respond to broadcast pings (default is unicast only)
  */
 #if !defined LWIP_BROADCAST_PING || defined __DOXYGEN__
-#define LWIP_BROADCAST_PING             0
+#define LWIP_BROADCAST_PING             1
 #endif
 
 /**
  * LWIP_MULTICAST_PING==1: respond to multicast pings (default is unicast only)
  */
 #if !defined LWIP_MULTICAST_PING || defined __DOXYGEN__
-#define LWIP_MULTICAST_PING             0
+#define LWIP_MULTICAST_PING             1
 #endif
 /**
  * @}
@@ -1174,7 +1175,7 @@ happening sooner than they should.
  * LWIP_IGMP==1: Turn on IGMP module.
  */
 #if !defined LWIP_IGMP || defined __DOXYGEN__
-#define LWIP_IGMP                       0
+#define LWIP_IGMP                       1
 #endif
 #if !LWIP_IPV4
 #undef LWIP_IGMP
@@ -3176,7 +3177,7 @@ happening sooner than they should.
  * @see debugging_levels
  */
 #if !defined LWIP_DBG_MIN_LEVEL || defined __DOXYGEN__
-#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
+#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_SEVERE
 #endif
 
 /**

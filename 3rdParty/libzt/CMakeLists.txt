@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.10)
 project (zt)
 
 # -----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ set (RELEASE_OPTIMIZATION "-O3")
 
 if (BUILDING_WIN)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -DNOMINMAX")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX")
 else ()
 	set (CMAKE_C_FLAGS
 		"${CMAKE_C_FLAGS} \
@@ -235,7 +235,8 @@ file (GLOB ztcoreSrcGlob
 
 file (GLOB libnatpmpSrcGlob
 	${ZTO_SRC_DIR}/ext/libnatpmp/natpmp.c
-	${ZTO_SRC_DIR}/ext/libnatpmp/getgateway.c)
+	${ZTO_SRC_DIR}/ext/libnatpmp/getgateway.c
+	${ZTO_SRC_DIR}/ext/libnatpmp/wingettimeofday.c)
 
 file (GLOB libminiupnpcSrcGlob
     ${ZTO_SRC_DIR}/ext/miniupnpc/connecthostport.c
@@ -430,7 +431,7 @@ add_library (${STATIC_LIB_NAME} STATIC $<TARGET_OBJECTS:libzt_obj>
 $<TARGET_OBJECTS:zto_obj>
 $<TARGET_OBJECTS:libnatpmp_obj>
 $<TARGET_OBJECTS:miniupnpc_obj>
-$<TARGET_OBJECTS:lwip_obj> ${libztSrcGlob})
+$<TARGET_OBJECTS:lwip_obj>)
 set_target_properties (${STATIC_LIB_NAME} PROPERTIES
     OUTPUT_NAME zt
     LIBRARY_OUTPUT_DIRECTORY ${INTERMEDIATE_LIBRARY_OUTPUT_PATH})
@@ -500,21 +501,3 @@ if (SHOULD_BUILD_TESTS)
 	#add_executable (simple ${PROJ_DIR}/test/simple.cpp)
 	#target_link_libraries(simple ${STATIC_LIB_NAME})
 endif ()
-
-# -----------------------------------------------------------------------------
-# |                                  INSTALL                                  |
-# -----------------------------------------------------------------------------
-
-set (PUBLIC_ZT_HEADERS
-    ${PROJECT_SOURCE_DIR}/include/ZeroTier.h
-    ${PROJECT_SOURCE_DIR}/include/ZeroTierConstants.h)
-
-set_target_properties(${STATIC_LIB_NAME} PROPERTIES PUBLIC_HEADER "${PUBLIC_ZT_HEADERS}")
-install (TARGETS ${STATIC_LIB_NAME}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
-)
-install (TARGETS ${DYNAMIC_LIB_NAME}
-        LIBRARY DESTINATION lib
-)

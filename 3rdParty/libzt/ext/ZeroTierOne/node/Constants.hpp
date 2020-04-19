@@ -110,8 +110,8 @@
 #define ZT_PATH_SEPARATOR '\\'
 #define ZT_PATH_SEPARATOR_S "\\"
 #define ZT_EOL_S "\r\n"
-#include <WinSock2.h>
-#include <Windows.h>
+#include <winsock2.h>
+#include <windows.h>
 #endif
 
 // Assume little endian if not defined

@@ -47,7 +47,7 @@
 #define LWIP_PROVIDE_ERRNO /* provide errno for MSVC pre-2017 */
 #endif
 #else /* _MSC_VER */
-#define LWIP_PROVIDE_ERRNO /* provide errno for non-MSVC */
+// #define LWIP_PROVIDE_ERRNO /* provide errno for non-MSVC */
 #endif /* _MSC_VER */
 
 /* Define platform endianness (might already be defined) */

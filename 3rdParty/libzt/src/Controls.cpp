@@ -34,6 +34,8 @@
 #include <sys/resource.h>
 #endif
 
+#include <thread>
+
 #include "Node.hpp"
 #include "ZeroTierOne.h"
 #include "OSUtils.hpp"
@@ -47,7 +49,7 @@
 
 #if defined(_WIN32)
 WSADATA wsaData;
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #ifdef SDK_JNI
@@ -94,8 +96,8 @@ bool _run_lwip_tcpip = false;
 
 //bool _startupError = false;
 
-pthread_t service_thread;
-pthread_t callback_thread;
+std::thread service_thread;
+std::thread callback_thread;
 
 // Global reference to ZeroTier service
 OneService *service;
@@ -283,22 +285,22 @@ void _api_sleep(int interval_ms)
 
 int _change_nice(int increment)
 {
+#ifndef _WIN32
 	if (increment == 0) {
 		return 0;
 	}
 	int  priority = getpriority(PRIO_PROCESS, 0);
 	return setpriority(PRIO_PROCESS, 0, priority+increment);
+#else
+	return 0;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // Callback thread                                                          //
 //////////////////////////////////////////////////////////////////////////////
 
-#if defined(_WIN32)
-DWORD WINAPI _zts_run_callbacks(LPVOID thread_id)
-#else
-void *_zts_run_callbacks(void *thread_id)
-#endif
+void _zts_run_callbacks()
 {
 	_change_nice(CALLBACK_THREAD_NICENESS);
 #if defined(__APPLE__)
@@ -329,12 +331,8 @@ void *_zts_run_callbacks(void *thread_id)
 //////////////////////////////////////////////////////////////////////////////
 
 // Starts a ZeroTier service in the background
-#if defined(_WIN32)
-DWORD WINAPI _zts_run_service(LPVOID arg)
-#else
-void *_zts_run_service(void *arg)
-#endif
-{	
+void _zts_run_service()
+{
 #if defined(__APPLE__)
 	pthread_setname_np(ZTS_SERVICE_THREAD_NAME);
 #endif
@@ -406,7 +404,6 @@ void *_zts_run_service(void *arg)
 	// TODO: Find a more elegant solution
 	_api_sleep(ZTS_CALLBACK_PROCESSING_INTERVAL*2);
 	_run_callbacks = false;
-	pthread_exit(0);
 }
 
 #ifdef __cplusplus
@@ -564,19 +561,15 @@ int zts_start(
 #if defined(_WIN32)
 	// Initialize WinSock. Used in Phy for loopback pipe
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
-	HANDLE serviceThread = CreateThread(NULL, 0, _zts_run_service, (void*)params, 0, NULL);
-	HANDLE callbackThread = CreateThread(NULL, 0, _zts_run_callbacks, NULL, 0, NULL);
 #endif
-	if ((err = pthread_create(&service_thread, NULL, _zts_run_service, NULL)) != 0) {
-		retval = err;
-	}
-	if ((err = pthread_create(&callback_thread, NULL, _zts_run_callbacks, NULL)) != 0) {
-		retval = err;
-	}
+	service_thread = std::thread(_zts_run_service);
+	callback_thread = std::thread(_zts_run_callbacks);
 #if defined(__linux__)
-	pthread_setname_np(service_thread, ZTS_SERVICE_THREAD_NAME);
-	pthread_setname_np(callback_thread, ZTS_EVENT_CALLBACK_THREAD_NAME);
+	pthread_setname_np(service_thread.native_handle(), ZTS_SERVICE_THREAD_NAME);
+	pthread_setname_np(callback_thread.native_handle(), ZTS_EVENT_CALLBACK_THREAD_NAME);
 #endif
+	service_thread.detach();
+	callback_thread.detach();
 
 	if (retval != ZTS_ERR_OK) {
 		_run_callbacks = false;

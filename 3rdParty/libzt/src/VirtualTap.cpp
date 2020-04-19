@@ -74,12 +74,12 @@ VirtualTap::VirtualTap(
 		_mtu(mtu),
 		_nwid(nwid),
 		_unixListenSocket((PhySocket *)0),
-		_phy(this,false,true)
+		_phy(this,false,true),
+		shutdownSignal(false)
 {
 	memset(vtap_full_name, 0, sizeof(vtap_full_name));
 	snprintf(vtap_full_name, sizeof(vtap_full_name), "libzt%llx", (unsigned long long)_nwid);
 	_dev = vtap_full_name;
-	::pipe(_shutdownSignalPipe);
 	// Start virtual tap thread and stack I/O loops
 	_thread = Thread::start(this);
 }
@@ -90,13 +90,15 @@ VirtualTap::~VirtualTap()
 	nd->nwid = _nwid;
 	postEvent(ZTS_EVENT_NETWORK_DOWN, (void*)nd);
 	_run = false;
-	::write(_shutdownSignalPipe[1],"\0",1);
+	{
+		std::unique_lock<std::mutex> lock(shutdownSignalMutex);
+		shutdownSignal = true;
+		shutdownSignalConditionTrue.notify_all();
+	}
 	_phy.whack();
 	lwip_remove_netif(netif);
 	netif = NULL;
 	Thread::join(_thread);
-	::close(_shutdownSignalPipe[0]);
-	::close(_shutdownSignalPipe[1]);
 }
 
 void VirtualTap::lastConfigUpdate(uint64_t lastConfigUpdateTime)
@@ -245,6 +247,11 @@ void VirtualTap::scanMulticastGroups(std::vector<MulticastGroup> &added,
 	std::vector<MulticastGroup> newGroups;
 	Mutex::Lock _l(_multicastGroups_m);
 	// TODO: get multicast subscriptions
+
+	// Hardcoded MAC for IPv6 multicast address
+	// ff0e:a8a9:b611:58ce:0412:fd73:3786:6fb7
+	newGroups.push_back(MulticastGroup(MAC(0x33, 0x33, 0x37, 0x86, 0x6f, 0xb7), 0));
+
 	std::vector<InetAddress> allIps(ips());
 	for (std::vector<InetAddress>::iterator ip(allIps.begin());ip!=allIps.end();++ip)
 		newGroups.push_back(MulticastGroup::deriveMulticastGroupForAddressResolution(*ip));
@@ -271,33 +278,31 @@ void VirtualTap::setMtu(unsigned int mtu)
 void VirtualTap::threadMain()
 	throw()
 {
-	fd_set readfds,nullfds;
 	struct timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
-	FD_ZERO(&readfds);
-	FD_ZERO(&nullfds);
-	int nfds = (int)std::max(_shutdownSignalPipe[0],0) + 1;
 #if defined(__linux__)
 	pthread_setname_np(pthread_self(), vtap_full_name);
 #endif
 #if defined(__APPLE__)
 	pthread_setname_np(vtap_full_name);
 #endif
-	while (true) {
-		FD_SET(_shutdownSignalPipe[0],&readfds);
-		select(nfds,&readfds,&nullfds,&nullfds,&tv);
-		// writes to shutdown pipe terminate thread
-		if (FD_ISSET(_shutdownSignalPipe[0],&readfds)) {
-			break;
-		}
+	{
+		std::unique_lock<std::mutex> lock(shutdownSignalMutex);
+		while (true) {
+			if(shutdownSignal)
+				break;
+			shutdownSignalConditionTrue.wait(lock);
+			if(shutdownSignal)
+				break;
 #if defined(_WIN32)
-		Sleep(ZTS_TAP_THREAD_POLLING_INTERVAL);
+			Sleep(ZTS_TAP_THREAD_POLLING_INTERVAL);
 #else
-		struct timespec sleepValue = {0};
-		sleepValue.tv_nsec = ZTS_TAP_THREAD_POLLING_INTERVAL * 500000;
-		nanosleep(&sleepValue, NULL);
+			struct timespec sleepValue = {0};
+			sleepValue.tv_nsec = ZTS_TAP_THREAD_POLLING_INTERVAL * 500000;
+			nanosleep(&sleepValue, NULL);
 #endif
+		}
 	}
 }
 

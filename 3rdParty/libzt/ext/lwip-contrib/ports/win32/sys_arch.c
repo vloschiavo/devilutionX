@@ -421,7 +421,7 @@ SetThreadName(DWORD dwThreadID, const char* threadName)
 }
 #endif /* _MSC_VER */
 
-static void
+static DWORD __stdcall
 sys_thread_function(void* arg)
 {
   struct threadlist* t = (struct threadlist*)arg;
@@ -432,6 +432,7 @@ sys_thread_function(void* arg)
 #if LWIP_NETCONN_SEM_PER_THREAD
   sys_arch_netconn_sem_free();
 #endif
+  return 0;
 }
 
 sys_thread_t
