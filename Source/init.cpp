@@ -127,9 +127,9 @@ void init_archives()
 	fileinfo.patcharchivefile = patch_rt_mpq_path;
 	init_get_file_info();
 
-	diabdat_mpq = init_test_access(diabdat_mpq_path, "diabdat.mpq", "DiabloCD", 1000, FS_CD);
+	diabdat_mpq = init_test_access(diabdat_mpq_path, "/sdcard/devilutionx/diabdat.mpq", "DiabloCD", 1000, FS_CD);
 	if (diabdat_mpq == NULL) {
-		diabdat_mpq = init_test_access(diabdat_mpq_path, "spawn.mpq", "DiabloSpawn", 1000, FS_PC);
+		diabdat_mpq = init_test_access(diabdat_mpq_path, "spawn.mpq", "DiabloSpawn", 1000, FS_CD);
 		if (diabdat_mpq != NULL)
 			gbIsSpawn = true;
 	}

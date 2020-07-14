@@ -8,6 +8,10 @@
 #include "display.h"
 #include <SDL.h>
 
+#ifdef __ANDROID__
+#include "miniwin/androidinput.h"
+#endif
+
 namespace dvl {
 
 int sgdwLockCount;
