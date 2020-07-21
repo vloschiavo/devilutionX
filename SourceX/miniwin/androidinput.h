@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <SDL_image.h>
-
+#include "../SourceS/miniwin/misc.h"
 
 namespace dvl {
 
@@ -22,6 +22,16 @@ namespace dvl {
 	void __fastcall checkItemsNearby(int pnum);
 	void useBeltPotion(bool mana);
 
+	extern int gAndroidTouchX;
+	extern int gAndroidTouchY;
+	void KillQuestMessage();
+
+
+
+	void FingerDownAction(SDL_Event e , tagMSG *lpMsg);
+	void FingerUpAction(SDL_Event e , tagMSG* lpMsg);
+
+
 
 	extern bool showJoystick;
 	extern bool JoyStickInitalPressSet;
@@ -29,7 +39,7 @@ namespace dvl {
 	extern int TouchX;
 	extern int TouchY;
 	extern bool DemoModeEnabled;
-	extern void PerformDPADMovement();
+	extern void PerformDPADMovement(int TouchX , int TouchY);
 
 	extern SDL_Surface * JoyStickS;
 	extern SDL_Texture * JoyStickT;
