@@ -2,6 +2,7 @@
 #include <deque>
 #include <SDL.h>
 
+
 #include "all.h"
 #include "display.h"
 #include "stubs.h"
@@ -384,7 +385,8 @@ bool PeekMessage(LPMSG lpMsg)
 
 	SDL_Event e;
 
-if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) && (!invflag && !spselflag && !chrflag && !stextflag && !questlog && !helpflag && !talkflag /* && !qtextflag*/)) {
+if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) && (!invflag && !spselflag && !chrflag && !stextflag && !questlog && !helpflag && !talkflag /* && !qtextflag*/))
+{
 
 
 		// if (e.type == SDL_FINGERDOWN) {
@@ -399,16 +401,6 @@ if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) && (!invflag && 
 
 	}
 
-
-
-
-
-
-
-
-
-
-
 #ifdef ANDROID
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) && (!invflag && !spselflag && !chrflag && !stextflag && !questlog && !helpflag && !talkflag && !sbookflag))
 	{
@@ -419,10 +411,6 @@ if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) && (!invflag && 
 			SDL_GetMouseState(&x, &y);
 			dvl::OutputToLogical(&x, &y);
 			PerformDPADMovement(x, y);
-//			SDL_Log("->>>>>>>>>>>>>>>>>>>>   %d  %d " ,x , y   );
-
-
-
 }
 
 #endif
@@ -634,7 +622,7 @@ case SDL_FINGERUP: {
 	gAndroidTouchY = 0;
 	AttackButtonPressed = false;
 	CastButtonPressed = false;
-	SDL_Log("DEBUG Finger UP!\n");
+	//SDL_Log("DEBUG Finger UP!\n");
 	int Xclick = e.tfinger.x * SCREEN_WIDTH;
 	int Yclick = e.tfinger.y * SCREEN_HEIGHT;
 	lpMsg->message = DVL_WM_LBUTTONUP;
