@@ -152,7 +152,11 @@ void InsertCDDlg()
 	    1024,
 	    "Unable to open main data archive (diabdat.mpq or spawn.mpq).\n"
 	    "\n"
+		#ifdef ANDROID
+	    "Make sure that it is in the game folder /devilutionx/ and that the file name is in all lowercase.\n If the folder doesnt exist please create it.");
+		#else
 	    "Make sure that it is in the game folder and that the file name is in all lowercase.");
+		#endif
 
 	UiErrorOkDialog("Data File Error", text);
 	app_fatal(NULL);

@@ -39,6 +39,62 @@ time_t Send_t = 0;
 double Sdiff_t;
 
 
+time_t Fstart_t = 0;
+time_t Fend_t = 0;
+double Fdiff_t;
+
+
+//JNI CALL BACK CODE
+#include <string.h>
+#include <inttypes.h>
+#include <pthread.h>
+#include <jni.h>
+#include <android/log.h>
+#include <assert.h>
+
+
+typedef struct tick_context {
+    JavaVM  *javaVM;
+	jclass   jniHelperClz;
+	jobject  jniHelperObj;
+	jclass   mainActivityClz;
+	jobject  mainActivityObj;
+	pthread_mutex_t  lock;
+	int      done;
+} TickContext;
+TickContext g_ctx;
+//org/diasurgical/devilutionx/DevilutionXSDLActivity
+jstring
+org_diasurgical_devilutionx_DevilutionXSDLActivity_stringFromJNI( JNIEnv* env, jobject thiz ){
+
+ return env->NewStringUTF("Hello from JNI !  Compiled with ABI");
+}
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+	JNIEnv* env;
+	memset(&g_ctx, 0, sizeof(g_ctx));
+
+	SDL_Log(" DEBUG  -- JNI INIT!!!");
+	g_ctx.javaVM = vm;
+	if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+		return JNI_ERR; // JNI version not supported.
+	}
+
+
+	jclass  clz = env->FindClass("org/diasurgical/devilutionx/DevilutionXSDLActivity");
+	g_ctx.jniHelperClz = (jclass)env->NewGlobalRef(clz); // hack
+
+	jmethodID  jniHelperCtor = env->GetMethodID(g_ctx.jniHelperClz,"<init>", "()V");
+	jobject    handler = env->NewObject(g_ctx.jniHelperClz, jniHelperCtor);
+	g_ctx.jniHelperObj = env->NewGlobalRef(handler);
+	//queryRuntimeInfo(env, g_ctx.jniHelperObj);
+
+	g_ctx.done = 0;
+	g_ctx.mainActivityObj = NULL;
+	return  JNI_VERSION_1_6;
+}
+
+//END JNI CODE
 #endif
 
 
@@ -51,8 +107,6 @@ double Sdiff_t;
  */
 
 namespace dvl {
-
-
 
 static std::deque<MSG> message_queue;
 
@@ -601,6 +655,22 @@ if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) && (!invflag && 
 }
 
 	case SDL_FINGERDOWN: {
+		if(invflag){
+
+		//SDL_Log("DEBUG FINGERDOW!! ");
+		time(&Fend_t);
+		Fdiff_t = difftime(Fend_t, Fstart_t);
+	    if(Fdiff_t > 0.8){ // This can be better .
+
+		   //SDL_Log("DEBUG DELAY MET!!! ");
+		   //NetSendCmdLocParam1(true, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY,  object[closest]._ox, object[closest]._oy, pcursobj);
+		    //if (invflag) {
+				UseInvItem(myplr, pcursinvitem);
+			//}
+			}
+			time(&Fstart_t);
+		}
+
 		int Xclick = e.tfinger.x * SCREEN_WIDTH;
 		int Yclick = e.tfinger.y * SCREEN_HEIGHT;
 			SDL_GetMouseState(&MouseX, &MouseY);

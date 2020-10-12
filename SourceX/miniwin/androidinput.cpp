@@ -594,24 +594,25 @@ bool __fastcall checkMonstersNearby(bool attack,bool spellcast)
 		pcursmonst = -1;
 		return false;
 	}
-	if (attack) {
-		// if (ticks - attacktick > 100) { // prevent accidental double attacks
-		// 	attacktick = ticks;
+	if (attack && spellcast == false) {
 		if(ShiftButtonPressed){
-			if(spellcast){
-			sd = GetDirection(plr[myplr]._px, plr[myplr]._py, monster[pcursmonst]._mx, monster[pcursmonst]._my);
-			sl = GetSpellLevel(myplr, plr[myplr]._pRSpell);
-			NetSendCmdLocParam3(true, CMD_SPELLXYD, monster[pcursmonst]._mx, monster[pcursmonst]._my, plr[myplr]._pRSpell, sd, sl); //CAST SPELL
-			}
-			else{
-			LeftMouseCmd(true);
-			}
+		 	LeftMouseCmd(true);
 
-		}else{
-			if(spellcast){
+		 }
+		 else{
+			if(spellcast && plr[myplr]._pRSpell != -1  && (plr[myplr]._pMana >> 6) > 0 ){
+				SDL_Log("DEBUG  SPELL CAST ID %d && PMANA %d", plr[myplr]._pRSpell, plr[myplr]._pMana >> 6 );
 			sd = GetDirection(plr[myplr]._px, plr[myplr]._py, monster[pcursmonst]._mx, monster[pcursmonst]._my);
 			sl = GetSpellLevel(myplr, plr[myplr]._pRSpell);
-			NetSendCmdLocParam3(true, CMD_SPELLXYD, monster[pcursmonst]._mx, monster[pcursmonst]._my, plr[myplr]._pRSpell, sd, sl); //CAST SPELL
+			time(&end_t);
+						diff_t = difftime(end_t, start_t);
+						if(diff_t > MinimalDelay){ // This can be better .
+							//NetSendCmdLocParam1(true, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY,  object[closest]._ox, object[closest]._oy, pcursobj);
+						   NetSendCmdLocParam3(true, CMD_SPELLXYD, monster[pcursmonst]._mx, monster[pcursmonst]._my, plr[myplr]._pRSpell, sd, sl); //CAST SPELL
+
+						}
+
+						time(&start_t);
 			}
 			else{
 			LeftMouseCmd(false);
@@ -765,10 +766,7 @@ time(&end_t);
 
 			if(diff_t > 0.3){ // This can be better .
 				useBeltPotion(false);
-
 			}
-
-
 			time(&start_t);
 */
 
