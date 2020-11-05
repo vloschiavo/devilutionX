@@ -6,6 +6,11 @@ Game saves and diablo.ini are located at:
 
 ~ is your home directory, /home/retrofw by default.
 
+Edit your diablo.ini file to include the Multiplayer Game host IP and password:
+[Phone Book]
+Entry1=10.1.1.1
+Password1=yourpasswd 
+
 Controls:
 - D-pad: move hero
 - A: attack nearby enemies, talk to townspeople and merchants, pickup/place items in the inventory, OK while in main menu

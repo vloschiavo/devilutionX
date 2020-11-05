@@ -1,9 +1,9 @@
 Package: devilutionx
-Version: 0.0.1
+Version: 1.1.0
 Architecture: mipsel
 Section: games
 Maintainer: glex.spb@gmail.com
-Description: A port of DevilutionX for RetroFW.
+Description: v1.1.0-git20201104 RG350 Multiplayer.
 Priority: optional
 Homepage: https://github.com/diasurgical/devilutionX
 Depends:

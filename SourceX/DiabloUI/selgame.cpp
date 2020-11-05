@@ -351,7 +351,7 @@ void selgame_Speed_Select(int value)
 void selgame_Password_Init(int value)
 {
 	memset(&selgame_Password, 0, sizeof(selgame_Password));
-
+	getIniValue("Phone Book", "Password1", selgame_Password, 15);
 	selgame_FreeVectors();
 
 	UiAddBackground(&vecSelGameDialog);

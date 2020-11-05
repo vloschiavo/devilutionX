@@ -6,6 +6,11 @@ diabdat.mpq filename must be lowercase.
 Game saves and diablo.ini are located at:
 /media/home/.local/share/diasurgical/devilution/
 
+Edit your diablo.ini file to include the Multiplayer Game host IP and password:
+[Phone Book]
+Entry1=10.1.1.1
+Password1=yourpasswd
+
 Controls:
 
 - Left analog or D-Pad: move hero

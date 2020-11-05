@@ -56,7 +56,12 @@ prepare_buildroot() {
 
 make_buildroot() {
 	cd "$BUILDROOT"
-	BR2_JLEVEL=0 make toolchain libzip sdl sdl_mixer sdl_ttf
+	if [[ "$TARGET" != "rg350" ]]; then
+		if ! grep 'enable-static' package/libsodium/libsodium.mk > /dev/null; then
+			echo 'LIBSODIUM_CONF_OPTS += --enable-static' >> package/libsodium/libsodium.mk
+		fi
+	fi
+	BBR2_JLEVEL=0 make toolchain libsodium libzip sdl sdl_mixer sdl_ttf
 	cd -
 }
 
